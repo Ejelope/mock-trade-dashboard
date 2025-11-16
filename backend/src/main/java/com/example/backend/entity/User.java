@@ -1,9 +1,6 @@
 package com.example.backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,10 +16,10 @@ public class User {
     private Long id;
 
     private String name;
+
+    @Column(unique = true)
     private String email;
 
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
-    }
+    private String password;
+    private double balance = 1_000_000;
 }
