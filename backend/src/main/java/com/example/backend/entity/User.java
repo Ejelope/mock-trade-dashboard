@@ -21,5 +21,5 @@ public class User {
     private String email;
 
     private String password;
-    private double balance = 1_000_000;
+    private double balance;
 }

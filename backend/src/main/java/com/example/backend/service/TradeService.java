@@ -1,5 +1,8 @@
 package com.example.backend.service;
 import com.example.backend.entity.Trade;
+import com.example.backend.entity.User;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.exception.InsufficientBalanceException;
 import com.example.backend.repository.TradeRepository;
 import org.json.JSONArray;
 import org.springframework.stereotype.Service;
@@ -11,9 +14,11 @@ import java.util.List;
 public class TradeService {
 
     private final TradeRepository tradeRepository;
+    private final UserRepository userRepository;
 
-    public TradeService(TradeRepository tradeRepository) {
+    public TradeService(TradeRepository tradeRepository, UserRepository userRepository) {
         this.tradeRepository = tradeRepository;
+        this.userRepository = userRepository;
     }
 
     // 시세 조회
@@ -34,8 +39,28 @@ public class TradeService {
         return tradeRepository.findAll();
     }
 
-    // 거래 저장
     public Trade saveTrade(Trade trade) {
-        return tradeRepository.save(trade);
+        // 사용자 정보 조회
+        User user = userRepository.findById(trade.getUserId())
+                .orElseThrow(() -> new RuntimeException("사용자 없음"));
+
+        // 매수/매도 처리 로직
+        if (trade.getSide().equals("BUY")) {
+            double totalPrice = trade.getPrice() * trade.getQuantity();
+            if (user.getBalance() < totalPrice) {
+                throw new InsufficientBalanceException("잔액이 부족합니다.");
+            }
+            user.setBalance(user.getBalance() - totalPrice);
+        } else if (trade.getSide().equals("SELL")) {
+            user.setBalance(user.getBalance() + (trade.getPrice() * trade.getQuantity()));
+        }
+
+        // 거래 저장
+        Trade savedTrade = tradeRepository.save(trade);
+
+        // 사용자 잔액 업데이트
+        userRepository.save(user);
+
+        return savedTrade;
     }
 }
