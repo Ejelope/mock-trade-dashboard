@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { getTicker } from "../services/upbitService";
 import { getTrades, createTrade } from "../services/tradeService";
 
@@ -6,6 +7,7 @@ export default function Dashboard() {
   const [symbol, setSymbol] = useState("KRW-BTC");
   const [ticker, setTicker] = useState(null);
   const [trades, setTrades] = useState([]);
+  const [balance, setBalance] = useState(0); //  잔액 상태 추가
 
   // 시세 로드
   const loadTicker = async () => {
@@ -19,25 +21,48 @@ export default function Dashboard() {
     setTrades(data);
   };
 
+  //  사용자 잔액 로드
+  const loadBalance = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/users/1");
+      setBalance(res.data.balance);
+    } catch (err) {
+      console.error("잔액 조회 실패:", err);
+    }
+  };
+
   // 매수/매도 처리
   const handleTrade = async (side) => {
+    try {
     await createTrade({
+        userId: 1, // 임시 사용자
       symbol,
       side,
       price: ticker.trade_price,
       quantity: 0.01,
     });
     await loadTrades(); // 거래 후 내역 갱신
+      await loadBalance();  //  거래 후 잔액 갱신
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data || "거래 실패");
+    }
   };
 
   // 첫 렌더링 시 자동 실행
   useEffect(() => {
     loadTicker();
     loadTrades();
+    loadBalance(); //  잔액도 함께 로드
   }, []);
 
   return (
       <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      {/*  현재 잔액 표시 */}
+      <div style={{ marginBottom: "16px", fontWeight: "bold", fontSize: "18px" }}>
+        💰 현재 잔액: {balance.toLocaleString()} 원
+      </div>
+
         {/* 시세 영역 */}
         <section style={{ borderBottom: "1px solid #ddd", paddingBottom: "16px", marginBottom: "20px" }}>
           <h2 style={{ fontWeight: "bold" }}>📈 현재 시세</h2>

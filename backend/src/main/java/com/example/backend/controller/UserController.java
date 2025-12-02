@@ -16,13 +16,22 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    // 전체 사용자 조회
     @GetMapping
     public List<User> getUsers() {
         return userRepository.findAll();
     }
 
+    // 사용자 등록
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
+    }
+
+    // 특정 사용자 조회 (잔액 포함)
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
 }
