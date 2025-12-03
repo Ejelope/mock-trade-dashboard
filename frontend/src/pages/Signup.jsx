@@ -16,11 +16,12 @@ export default function Signup() {
     try {
       await signup(form);
       setMessage("회원가입이 완료되었습니다.");
-      setTimeout(() => navigate("/login"), 1200); // 가입 후 로그인으로 이동
+      setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       setMessage("이미 존재하는 이메일입니다.");
     }
   };
+
 
   return (
     <div style={{ padding: 40 }}>
